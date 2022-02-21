@@ -12,5 +12,6 @@ set -ex
     export ORACLE_TLS=$(aws s3 cp s3://oracle-credentials/tls.txt -)
 } &> /dev/null
 
+cd $SCRIPTPATH/..
 python3 -m cabecoes_sa.load
 

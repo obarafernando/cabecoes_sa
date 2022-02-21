@@ -7,20 +7,20 @@ from .utils import fetch_last_run_datetime, log, s3_binary_to_workbook, add_info
 import cx_Oracle
 
 
-USER = os.environ['ORACLE_USER']
-PASS = os.environ['ORACLE_PASS']
-TLS = os.environ['ORACLE_TLS']
+user = os.environ['ORACLE_USER']
+password = os.environ['ORACLE_PASS']
+tls = os.environ['ORACLE_TLS']
 
 # SCRIPT_PATH = os.environ['FULLPATH']
 lib_dir = r"C:\Users\Fefe\Documents\GitHub\cabecoes_sa\instantclient_19_14" #Should use SCRIPT_PATH on Linux
 
 s3_resource = boto3.resource('s3')
 s3_client = boto3.client('s3')
-BUCKET = s3_resource.Bucket("elocase")
+bucket = s3_resource.Bucket("elocase")
 
-DEFAULT_TABLES = ['fato_leitura', 'dim_medidor', 'dim_segmento_mercado']
+default_tables = ['fato_leitura', 'dim_medidor', 'dim_segmento_mercado']
 
-MANUAL_CATALOG = {
+manual_catalog = {
     "fato_leitura" : """FILE_DT varchar2(100),
                         LOAD_TIME varchar2(100),
                         CD_DOCUMENTO_LEITURA number(38,2),
@@ -60,7 +60,7 @@ MANUAL_CATALOG = {
                         DS_SEGMENTO_MERCADO varchar2(100)"""
 }
 
-INSERT_PARAM = {
+insert_param = {
     "fato_leitura" : """FILE_DT,
                         LOAD_TIME,
                         CD_DOCUMENTO_LEITURA,
@@ -102,9 +102,9 @@ INSERT_PARAM = {
 
 def get_tables_from_s3(s3_tables):
     for table in s3_tables:
-        last_dt = fetch_last_run_datetime(BUCKET.name, table)
+        last_dt = fetch_last_run_datetime(bucket.name, table)
         try:
-            file = s3_client.get_object(Bucket = BUCKET.name, Key = f"{table}/{last_dt}.xlsx")
+            file = s3_client.get_object(Bucket = bucket.name, Key = f"{table}/{last_dt}.xlsx")
             _table = s3_binary_to_workbook(file,table)
             yield _table, last_dt, table
         except botocore.exceptions.ClientError as e:
@@ -113,7 +113,7 @@ def get_tables_from_s3(s3_tables):
 def load_data(tables):
     try:
         cx_Oracle.init_oracle_client(lib_dir=lib_dir)
-        connection = cx_Oracle.connect(user=USER,password=PASS, dsn=TLS)
+        connection = cx_Oracle.connect(user=user,password=password, dsn=tls)
         if connection:
             cur = connection.cursor()
             for table, name in tables:
@@ -123,16 +123,18 @@ def load_data(tables):
                                     exception when others then if sqlcode <> -942 then raise; end if;
                                 end;""")
                 log.info(f'Creating table {name}.')
-                if name in MANUAL_CATALOG.keys():
-                    cur.execute(f"""create table {name}({MANUAL_CATALOG[name]})""")
+                if name in manual_catalog.keys():
+                    cur.execute(f"""create table {name}({manual_catalog[name]})""")
                 log.info(f'Table {name} created.')
                 log.info(f'Inserting data into table {name}.')
-                if name in INSERT_PARAM.keys():
+                if name in insert_param.keys():
                     max_row = len(table['A'])
                     max_col = table.max_column
                     for rows in range(2,max_row):
                         for row in table.iter_rows(min_row=rows, max_row=rows, max_col=max_col,values_only=True):
-                            cur.execute(f"""insert into {name}({INSERT_PARAM[name]}) values {row}""")
+                            #Uncomment line below to see insert
+                            #log.info(f"""insert into {name}({insert_param[name]}) values {row}""")
+                            cur.execute(f"""insert into {name}({insert_param[name]}) values {row}""")
             log.info(f"Commiting table {name}.")
             connection.commit()
 
@@ -148,7 +150,7 @@ def load_data(tables):
 @argh.arg("--tables", "-t", nargs='+', type=str)
 def main(tables: Optional[str]=None):
     if tables == None:
-        tables = DEFAULT_TABLES
+        tables = default_tables
 
     log.info("Selected tables %s", tables)
     log.info('Getting tables from s3.')
