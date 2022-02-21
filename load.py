@@ -12,7 +12,7 @@ PASS = os.environ['ORACLE_PASS']
 TLS = os.environ['ORACLE_TLS']
 
 # SCRIPT_PATH = os.environ['FULLPATH']
-lib_dir = r"C:\Users\Fefe\Documents\GitHub\elocase\cabecoes_sa\instantclient_19_14" #Should use SCRIPT_PATH on Linux
+lib_dir = r"C:\Users\Fefe\Documents\GitHub\cabecoes_sa\instantclient_19_14" #Should use SCRIPT_PATH on Linux
 
 s3_resource = boto3.resource('s3')
 s3_client = boto3.client('s3')
