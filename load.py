@@ -1,5 +1,5 @@
 import boto3
-from typing import List, Optional
+from typing import Optional
 import argh
 import os
 import botocore
@@ -100,7 +100,7 @@ INSERT_PARAM = {
                         DS_SEGMENTO_MERCADO"""
 }
 
-def get_tables_from_s3(s3_tables: List[str]):
+def get_tables_from_s3(s3_tables):
     for table in s3_tables:
         last_dt = fetch_last_run_datetime(BUCKET.name, table)
         try:

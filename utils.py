@@ -3,7 +3,6 @@ import logging
 import io
 from openpyxl import load_workbook
 import datetime
-from typing import List
 
 
 FORMAT = '%(asctime)-15s - %(message)s'
@@ -39,7 +38,7 @@ def s3_binary_to_workbook(file,table):
     sheet = convert_none_null(convert_dt_columns_values(sheet,table))
     return sheet
 
-def add_info_columns(tables: List[tuple]):
+def add_info_columns(tables):
     for table, last_dt, name in tables:
         try:
             load_time = datetime.datetime.now()
