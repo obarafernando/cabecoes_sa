@@ -3,9 +3,8 @@ from typing import Optional
 import argh
 import os
 import botocore
-from .utils import fetch_last_run_datetime, log, s3_binary_to_workbook, add_info_columns
+from .utils import fetch_last_run_datetime, log, s3_binary_to_workbook, add_info_columns, return_table_schema
 import cx_Oracle
-
 
 user = os.environ['ORACLE_USER']
 password = os.environ['ORACLE_PASS']
@@ -19,86 +18,6 @@ s3_client = boto3.client('s3')
 bucket = s3_resource.Bucket("elocase")
 
 default_tables = ['fato_leitura', 'dim_medidor', 'dim_segmento_mercado']
-
-manual_catalog = {
-    "fato_leitura" : """FILE_DT varchar2(100),
-                        LOAD_TIME varchar2(100),
-                        CD_DOCUMENTO_LEITURA number(38,2),
-                        SK_SEGMENTO_MERCADO number(38,2),
-                        SK_INSTALACAO number(38,2),
-                        SK_MEDIDOR number(38,2),
-                        SK_MOTIVO_LEITURA number(38,2),
-                        SK_NOTA_LEITURISTA number(38,2),
-                        SK_STATUS_LEITURA number(38,2),
-                        CD_MEDIDOR number(38,2),
-                        CD_MOTIVO_LEITURA number(38,2),
-                        CD_ADICIONADO_POR varchar2(100),
-                        CD_MODIFICADO_POR varchar2(100),
-                        CD_STATUS_LEITURA number(38,2),
-                        CD_REGISTRADOR number(38,2),
-                        VL_LEITURA_ATUAL number(38,2),
-                        VL_LEITURA_ANTERIOR number(38,2),
-                        VL_LEITURA_PERIODO_ANTERIOR number(38,2),
-                        QT_CONTADOR number(38,2),
-                        DT_LEITURA varchar2(100),
-                        DT_LEITURA_PREVISTA varchar2(100),
-                        DT_MODIFICACAO varchar2(100)"""
-
-    ,"dim_medidor" : """FILE_DT varchar2(100),
-                        LOAD_TIME varchar2(100),
-                        SK_MEDIDOR number(38,2),
-                        CD_MEDIDOR number(38,2),
-                        NR_SERIE_MEDIDOR varchar2(100),
-                        CD_LOCAL_INSTALACAO number(38,2),
-                        DS_FABRICANTE varchar2(100),
-                        DS_MEDIDOR varchar2(100)"""
-
-    ,"dim_segmento_mercado" : """FILE_DT varchar2(100),
-                        LOAD_TIME varchar2(100),
-                        SK_SEGMENTO_MERCADO number(38,2),
-                        CD_SEGMENTO_MERCADO number(38,2),
-                        DS_SEGMENTO_MERCADO varchar2(100)"""
-}
-
-insert_param = {
-    "fato_leitura" : """FILE_DT,
-                        LOAD_TIME,
-                        CD_DOCUMENTO_LEITURA,
-                        SK_SEGMENTO_MERCADO,
-                        SK_INSTALACAO,
-                        SK_MEDIDOR,
-                        SK_MOTIVO_LEITURA,
-                        SK_NOTA_LEITURISTA,
-                        SK_STATUS_LEITURA,
-                        CD_MEDIDOR,
-                        CD_MOTIVO_LEITURA,
-                        CD_ADICIONADO_POR,
-                        CD_MODIFICADO_POR,
-                        CD_STATUS_LEITURA,
-                        CD_REGISTRADOR,
-                        VL_LEITURA_ATUAL,
-                        VL_LEITURA_ANTERIOR,
-                        VL_LEITURA_PERIODO_ANTERIOR,
-                        QT_CONTADOR,
-                        DT_LEITURA,
-                        DT_LEITURA_PREVISTA,
-                        DT_MODIFICACAO"""
-
-    ,"dim_medidor" : """FILE_DT,
-                        LOAD_TIME,
-                        SK_MEDIDOR,
-                        CD_MEDIDOR,
-                        NR_SERIE_MEDIDOR,
-                        CD_LOCAL_INSTALACAO,
-                        DS_FABRICANTE,
-                        DS_MEDIDOR"""
-
-    ,"dim_segmento_mercado" : """FILE_DT,
-                        LOAD_TIME,
-                        SK_SEGMENTO_MERCADO,
-                        CD_SEGMENTO_MERCADO,
-                        DS_SEGMENTO_MERCADO"""
-}
 
 def get_tables_from_s3(s3_tables):
     for table in s3_tables:
@@ -123,18 +42,18 @@ def load_data(tables):
                                     exception when others then if sqlcode <> -942 then raise; end if;
                                 end;""")
                 log.info(f'Creating table {name}.')
-                if name in manual_catalog.keys():
-                    cur.execute(f"""create table {name}({manual_catalog[name]})""")
+                columns_and_types = return_table_schema(name, 'types')
+                columns = return_table_schema(name, None)
+                cur.execute(f"""create table {name}({columns_and_types})""")
                 log.info(f'Table {name} created.')
                 log.info(f'Inserting data into table {name}.')
-                if name in insert_param.keys():
-                    max_row = len(table['A'])
-                    max_col = table.max_column
-                    for rows in range(2,max_row):
-                        for row in table.iter_rows(min_row=rows, max_row=rows, max_col=max_col,values_only=True):
-                            #Uncomment line below to see insert
-                            #log.info(f"""insert into {name}({insert_param[name]}) values {row}""")
-                            cur.execute(f"""insert into {name}({insert_param[name]}) values {row}""")
+                max_row = len(table['A'])
+                max_col = table.max_column
+                for rows in range(2,max_row):
+                    for row in table.iter_rows(min_row=rows, max_row=rows, max_col=max_col,values_only=True):
+                        #Uncomment line below to see insert
+                        #log.info(f"""insert into {name}({insert_param[name]}) values {row}""")
+                        cur.execute(f"""insert into {name}({columns}) values {row}""")
             log.info(f"Commiting table {name}.")
             connection.commit()
 
@@ -151,6 +70,7 @@ def load_data(tables):
 def main(tables: Optional[str]=None):
     if tables == None:
         tables = default_tables
+
 
     log.info("Selected tables %s", tables)
     log.info('Getting tables from s3.')

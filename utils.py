@@ -3,7 +3,7 @@ import logging
 import io
 from openpyxl import load_workbook
 import datetime
-
+import json
 
 FORMAT = '%(asctime)-15s - %(message)s'
 logging.basicConfig(format=FORMAT)
@@ -32,14 +32,14 @@ def fetch_last_run_datetime(bucket_name, prefix, checksum_separator=None):
         return None
     return max(valid_datetimes)
 
-def s3_binary_to_workbook(file,table):
+def s3_binary_to_workbook(file,table_name):
     data = io.BytesIO(file['Body'].read())
-    sheet = load_workbook(data).active
-    sheet = convert_none_null(convert_dt_columns_values(sheet,table))
-    return sheet
+    table = load_workbook(data).active
+    table = convert_none_null(convert_dt_columns_values(table,table_name))
+    return table
 
 def add_info_columns(tables):
-    for table, last_dt, name in tables:
+    for table, last_dt, table_name in tables:
         try:
             load_time = datetime.datetime.now()
             load_time = load_time.strftime("%Y-%m-%d %H:%M:%S")
@@ -50,28 +50,41 @@ def add_info_columns(tables):
             for x in range(2, last_row):
                 table[f'A{x}'] = last_dt
                 table[f'B{x}'] = load_time
-            yield table, name
+            yield table, table_name
         except:
             pass
 
-def convert_dt_columns_values(sheet,name):
-    max_row = len(sheet['A'])
-    max_col = sheet.max_column
-    if name == 'fato_leitura':
+def convert_dt_columns_values(table,table_name):
+    max_row = len(table['A'])
+    max_col = table.max_column
+    if table_name == 'fato_leitura':
         for rows in range(2,max_row):
             for columns in range(max_col-2 ,max_col+1):
-                cell = sheet.cell(row=rows, column=columns)
+                cell = table.cell(row=rows, column=columns)
                 cell.value = str(cell.value)
-    return sheet
+    return table
 
-def convert_none_null(sheet):
-    max_row = len(sheet['A'])
-    max_col = sheet.max_column
+def convert_none_null(table):
+    max_row = len(table['A'])
+    max_col = table.max_column
     for rows in range(2,max_row):
         for columns in range(1,max_col+1):
-            cell = sheet.cell(row=rows, column=columns)
+            cell = table.cell(row=rows, column=columns)
             if cell.value == 'NULL' or cell.value == None:
                 cell.value = ''
             if cell.value == '0.000000000000000000':
                 cell.value = 0
-    return sheet
+    return table
+
+def return_table_schema(table_name, types):
+    with open('cabecoes_sa\schema.json') as json_file:
+        schema = json.load(json_file)
+        schema_string = ''
+        if table_name in schema:
+            for column in schema[table_name]:
+                if types == 'types':
+                    schema_string += column['name']+' '+column['type']+','
+                else:
+                    schema_string += column['name']+','
+            schema_string = schema_string[:-1]
+        return schema_string

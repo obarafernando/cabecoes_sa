@@ -1,0 +1,183 @@
+{
+    "fato_leitura": [
+        {
+            "name": "FILE_DT",
+            "type": "varchar2(100)"
+
+        },
+        {
+            "name": "LOAD_TIME",
+            "type": "varchar2(100)"
+
+        },
+        {
+            "name": "CD_DOCUMENTO_LEITURA",
+            "type": "number(38,2)"
+
+        },
+        {
+            "name": "SK_SEGMENTO_MERCADO",
+            "type": "number(38,2)"
+
+        },
+        {
+            "name": "SK_INSTALACAO",
+            "type": "number(38,2)"
+
+        },
+        {
+            "name": "SK_MEDIDOR",
+            "type": "number(38,2)"
+
+        },
+        {
+            "name": "SK_MOTIVO_LEITURA",
+            "type": "number(38,2)"
+
+        },
+        {
+            "name": "SK_NOTA_LEITURISTA",
+            "type": "number(38,2)"
+
+        },
+        {
+            "name": "SK_STATUS_LEITURA",
+            "type": "number(38,2)"
+
+        },
+        {
+            "name": "CD_MEDIDOR",
+            "type": "number(38,2)"
+
+        },
+        {
+            "name": "CD_MOTIVO_LEITURA",
+            "type": "number(38,2)"
+
+        },
+        {
+            "name": "CD_ADICIONADO_POR",
+            "type": "varchar2(100)"
+
+        },
+        {
+            "name": "CD_MODIFICADO_POR",
+            "type": "varchar2(100)"
+
+        },
+        {
+            "name": "CD_STATUS_LEITURA",
+            "type": "number(38,2)"
+
+        },
+        {
+            "name": "CD_REGISTRADOR",
+            "type": "number(38,2)"
+
+        },
+        {
+            "name": "VL_LEITURA_ATUAL",
+            "type": "number(38,2)"
+
+        },
+        {
+            "name": "VL_LEITURA_ANTERIOR",
+            "type": "number(38,2)"
+
+        },
+        {
+            "name": "VL_LEITURA_PERIODO_ANTERIOR",
+            "type": "number(38,2)"
+
+        },
+        {
+            "name": "QT_CONTADOR",
+            "type": "number(38,2)"
+
+        },
+        {
+            "name": "DT_LEITURA",
+            "type": "varchar2(100)"
+
+        },
+        {
+            "name": "DT_LEITURA_PREVISTA",
+            "type": "varchar2(100)"
+
+        },
+        {
+            "name": "DT_MODIFICACAO",
+            "type": "varchar2(100)"
+
+        }
+    ],
+    "dim_medidor": [
+        {
+            "name": "FILE_DT",
+            "type": "varchar2(100)"
+
+        },
+        {
+            "name": "LOAD_TIME",
+            "type": "varchar2(100)"
+
+        },
+        {
+            "name": "SK_MEDIDOR",
+            "type": "number(38,2)"
+
+        },
+        {
+            "name": "CD_MEDIDOR",
+            "type": "number(38,2)"
+
+        },
+        {
+            "name": "NR_SERIE_MEDIDOR",
+            "type": "varchar2(100)"
+
+        },
+        {
+            "name": "CD_LOCAL_INSTALACAO",
+            "type": "number(38,2)"
+
+        },
+        {
+            "name": "DS_FABRICANTE",
+            "type": "varchar2(100)"
+            
+        },
+        {
+            "name": "DS_MEDIDOR",
+            "type": "varchar2(100)"
+
+        }
+    ],
+    "dim_segmento_mercado": [
+        {
+            "name": "FILE_DT",
+            "type": "varchar2(100)"
+
+        },
+        {
+            "name": "LOAD_TIME",
+            "type": "varchar2(100)"
+
+        },
+        {
+            "name": "SK_SEGMENTO_MERCADO",
+            "type": "number(38,2)"
+
+        },
+        {
+            "name": "CD_SEGMENTO_MERCADO",
+            "type": "number(38,2)"
+
+        },
+        {
+            "name": "DS_SEGMENTO_MERCADO",
+            "type": "varchar2(100)"
+
+        }
+    ]
+}
