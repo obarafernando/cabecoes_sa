@@ -12,8 +12,15 @@ This project contains a tables-load script and a pbix file.
 
 The load script consists of 3 steps:
 - Retrieving data (tables) from storage (s3).
-- Adding info columns and standardizing cell values.
+  - Get the xlsx files and convert into workbook object.
+  - Standardize cell values.
+- Adding info columns.
+  - Just added some useful columns (load timestamp and file date).
 - Loading data into database.
+  - Connects to Oracle Client.
+  - Retrieve metadata from schema.json.
+  - Drop/Create and insert values from s3 csvs into tables.
+  - Commit
 
 Won't run without changing some authentication files (.aws/credentials). The credentials to connect into Oracle Autonomous Database are also retrieved from s3.
 
